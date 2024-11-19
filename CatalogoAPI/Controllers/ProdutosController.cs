@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using CatalogoAPI.Context;
+﻿using Microsoft.AspNetCore.Mvc;
 using CatalogoAPI.Models;
+using CatalogoAPI.Data.Interfaces;
+using AutoMapper;
+using CatalogoAPI.DTOs;
 
 namespace CatalogoAPI.Controllers
 {
@@ -14,95 +10,79 @@ namespace CatalogoAPI.Controllers
     [ApiController]
     public class ProdutosController : ControllerBase
     {
-        private readonly CatalogoAPIDbContext _context;
+        private readonly IUnityOfWork<Produto> _uow;
+        private readonly IMapper _mapper;
 
-        public ProdutosController(CatalogoAPIDbContext context)
+        public ProdutosController(IUnityOfWork<Produto> uow, IMapper mapper)
         {
-            _context = context;
+            _uow = uow;
+            _mapper = mapper;
         }
 
-        // GET: api/Produtoes
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Produto>>> GetProdutos()
         {
-            return await _context.Produtos.AsNoTracking().ToListAsync();
+            var produtos = await _uow.ProdutoRepository.GetAll();
+
+            return Ok(produtos);
         }
 
-        // GET: api/Produtoes/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Produto>> GetProduto(int id)
+        [HttpGet("{produtoId}")]
+        public async Task<ActionResult<ProdutoDTO>> GetProduto(int produtoId)
         {
-            var produto = await _context.Produtos.FindAsync(id);
+            var produto = await _uow.ProdutoRepository.Get(a => a.ProdutoId == produtoId);
 
             if (produto == null)
             {
                 return NotFound();
             }
 
-            return produto;
+            var produtoDto = _mapper.Map<ProdutoDTO>(produto);
+
+            return Ok(produtoDto);
         }
 
-        // PUT: api/Produtoes/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduto(int id, Produto produto)
+        [HttpPost]
+        public async Task<ActionResult<ProdutoDTO>> PostProduto(ProdutoDTO produtoDto)
         {
-            if (id != produto.ProdutoId)
+            var produto = _mapper.Map<Produto>(produtoDto);
+
+            var produtoCriado = _uow.Repository.Create(produto);
+            await _uow.CommitAsync();
+
+            return CreatedAtAction("GetProduto", new { produtoId = produtoCriado.ProdutoId }, produtoCriado);
+        }
+
+        [HttpPut("{produtoId}")]
+        public async Task<IActionResult> PutProduto(int produtoId, ProdutoDTO produtoDto)
+        {
+            if (produtoId != produtoDto.ProdutoId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(produto).State = EntityState.Modified;
+            var produto = _mapper.Map<Produto>(produtoDto);
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ProdutoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            _uow.ProdutoRepository.Update(produto);
+            await _uow.CommitAsync();
 
             return NoContent();
         }
 
-        // POST: api/Produtoes
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Produto>> PostProduto(Produto produto)
+        [HttpDelete("{produtoId}")]
+        public async Task<IActionResult> DeleteProduto(int produtoId)
         {
-            _context.Produtos.Add(produto);
-            await _context.SaveChangesAsync();
+            var produto = await _uow.Repository.Get(a => a.ProdutoId == produtoId);
 
-            return CreatedAtAction("GetProduto", new { id = produto.ProdutoId }, produto);
-        }
-
-        // DELETE: api/Produtoes/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProduto(int id)
-        {
-            var produto = await _context.Produtos.FindAsync(id);
             if (produto == null)
             {
                 return NotFound();
             }
 
-            _context.Produtos.Remove(produto);
-            await _context.SaveChangesAsync();
+            await _uow.ProdutoRepository.Delete(produto);
+            await _uow.CommitAsync();
 
             return NoContent();
-        }
-
-        private bool ProdutoExists(int id)
-        {
-            return _context.Produtos.Any(e => e.ProdutoId == id);
         }
     }
 }

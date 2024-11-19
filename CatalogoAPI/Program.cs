@@ -1,4 +1,7 @@
+using CatalogoAPI.Configuration;
 using CatalogoAPI.Context;
+using CatalogoAPI.Data.Interfaces;
+using CatalogoAPI.Data.Repository;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -12,15 +15,19 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
-string mySqlConfig = builder.Configuration.GetConnectionString("DefaultConnection");
+string sqlServerConfig = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<CatalogoAPIDbContext>(options =>
-    options.UseSqlServer(mySqlConfig));
+    options.UseSqlServer(sqlServerConfig));
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: "AllowAll",
     builder => builder.AllowAnyOrigin());
 });
+
+builder.Services.AddAutoMapper(typeof(Program));
+
+builder.Services.ResolveDependencies();
 
 var app = builder.Build();
 

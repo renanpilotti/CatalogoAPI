@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "hkp8Oug2rg+dniTps4tllP/r1O2YzwKRlmkW/93UHqos0pg6E7oUwJxT/iSprq9+vHm2FfBXFBqRLAOoW9DG7A==",
+  "dgSpecHash": "suA0zQxOvDJRVBuZJ/5BxKrZW+rz/PEtkYk6rYybniGbCa3sCA5izt8yB7y3GC5owIcT2b7s+VLpUREe4O7WJQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\RMPil\\Desktop\\CSharpProj\\CatalogoAPI\\CatalogoAPI\\CatalogoAPI.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\RMPil\\.nuget\\packages\\automapper\\13.0.1\\automapper.13.0.1.nupkg.sha512",
     "C:\\Users\\RMPil\\.nuget\\packages\\azure.core\\1.35.0\\azure.core.1.35.0.nupkg.sha512",
     "C:\\Users\\RMPil\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",
     "C:\\Users\\RMPil\\.nuget\\packages\\entityframework\\6.5.1\\entityframework.6.5.1.nupkg.sha512",
